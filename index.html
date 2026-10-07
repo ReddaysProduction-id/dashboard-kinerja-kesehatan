@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Kinerja Kesehatan KKU — Online</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">DK</div><div><b>DINKESKB</b><span>Kayong Utara</span></div></div>
+  <button class="nav active" data-nav="home">⌂ <span>Dashboard Utama</span></button>
+  <div class="nav-title">KELOMPOK UTAMA</div>
+  <button class="nav" data-nav="promkes">01 <span>Promosi Kesehatan & Pemberdayaan</span></button>
+  <button class="nav" data-nav="keluarga">02 <span>Kesehatan Keluarga & Gizi</span></button>
+  <button class="nav" data-nav="lingkungan">03 <span>Kesehatan Lingkungan, Kerja & Olahraga</span></button>
+</aside>
+
+<main id="app">
+<header class="topbar">
+ <div><small>DINAS KESEHATAN DAN KELUARGA BERENCANA</small><h1 id="pageTitle">Dashboard Kinerja Kesehatan</h1></div>
+ <div class="top-actions"><button class="btn light" id="printBtn">Cetak / PDF</button><button class="btn primary" id="addBtn">＋ Tambah Kegiatan</button></div>
+</header>
+
+<section id="pageHome" class="page">
+ <div class="hero"><div><span>DASHBOARD TERPADU</span><h2>Pusat Laporan & Kinerja Kegiatan</h2><p>Pilih kelompok utama untuk melihat struktur kegiatan, laporan dan dokumentasi.</p></div><strong>2026</strong></div>
+ <div class="main-grid">
+  <article class="main-card teal" data-area="promkes"><em>01</em><h2>PROMOSI KESEHATAN DAN PEMBERDAYAAN MASYARAKAT</h2><footer><b id="countPromkes">0</b> kegiatan <i>→</i></footer></article>
+  <article class="main-card blue" data-area="keluarga"><em>02</em><h2>KESEHATAN KELUARGA DAN GIZI MASYARAKAT</h2><footer><b id="countKeluarga">0</b> kegiatan <i>→</i></footer></article>
+  <article class="main-card gold" data-area="lingkungan"><em>03</em><h2>KESEHATAN LINGKUNGAN, KESEHATAN KERJA DAN OLAHRAGA</h2><footer><b id="countLingkungan">0</b> kegiatan <i>→</i></footer></article>
+ </div>
+ <div class="kpis"><div>Total Kegiatan<b id="kTotal">0</b></div><div>Selesai<b id="kDone">0</b></div><div>Dokumentasi<b id="kDoc">0%</b></div><div>Capaian<b id="kAch">0%</b></div></div>
+ <div class="panel"><small>STATISTIK KESELURUHAN</small><h2>Kegiatan per Bulan</h2><canvas id="homeChart" height="85"></canvas></div>
+</section>
+
+<section id="pagePrograms" class="page hidden">
+ <button class="back" id="backHome1">← Dashboard Utama</button>
+ <div class="section-title"><span id="programEyebrow"></span><h2>Kelompok Kegiatan</h2><p>Pilih salah satu kelompok untuk melihat seluruh laporan dan dokumentasinya.</p></div>
+ <div id="programGrid" class="program-grid"></div>
+</section>
+
+<section id="pageList" class="page hidden">
+ <div class="crumb"><button class="back" id="backPrograms">← Kembali ke Kelompok</button><span id="crumb"></span></div>
+ <div class="section-title"><span>DAFTAR KEGIATAN</span><h2 id="listTitle"></h2><p>Semua laporan pada kelompok yang dipilih.</p></div>
+ <div class="kpis"><div>Total Kegiatan<b id="listTotal">0</b></div><div>Selesai<b id="listDone">0</b></div><div>Proses<b id="listProcess">0</b></div><div>Dokumentasi<b id="listDoc">0%</b></div></div>
+ <div class="panel">
+  <div class="tools"><input id="searchInput" placeholder="Cari kegiatan, jenis, lokasi..."><select id="statusFilter"><option value="">Semua status</option><option>Selesai</option><option>Proses</option><option>Rencana</option></select><button class="btn primary" id="addFromList">＋ Tambah</button></div>
+  <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kegiatan</th><th>Jenis</th><th>Lokasi</th><th>Status</th><th>Dok.</th><th>Aksi</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+ </div>
+</section>
+</main>
+</div>
+
+<div id="formModal" class="modal hidden"><div class="modalbox">
+<button class="close" id="closeForm">×</button><small>INPUT / EDIT KEGIATAN</small><h2 id="formHead">Tambah Kegiatan</h2>
+<form id="activityForm">
+<input type="hidden" id="editId">
+<div class="formgrid">
+<label>Kelompok utama<select id="fArea"><option value="promkes">Promosi Kesehatan & Pemberdayaan Masyarakat</option><option value="keluarga">Kesehatan Keluarga & Gizi Masyarakat</option><option value="lingkungan">Kesehatan Lingkungan, Kerja & Olahraga</option></select></label>
+<label>Kelompok/program<select id="fProgram"></select></label>
+<label>Tanggal<input id="fDate" type="date" required></label>
+<label>Status<select id="fStatus"><option>Selesai</option><option>Proses</option><option>Rencana</option></select></label>
+<label class="wide">Nama kegiatan<input id="fTitle" required></label>
+<label>Jenis kegiatan<input id="fType" required></label><label>Lokasi<input id="fLocation" required></label>
+<label>Dokumentasi<select id="fDoc"><option value="true">Ada</option><option value="false">Belum ada</option></select></label>
+<label class="wide">Ringkasan<textarea id="fDesc" rows="3"></textarea></label>
+<label class="wide">Link foto<input id="fPhoto" type="url" placeholder="https://..."></label>
+<label class="wide">Link video<input id="fVideo" type="url" placeholder="https://..."></label>
+<label class="wide">Link laporan PDF<input id="fPdf" type="url" placeholder="https://..."></label>
+</div>
+<div class="formactions"><button type="button" class="btn light" id="cancelForm">Batal</button><button class="btn primary" type="submit">Simpan</button></div>
+</form></div></div>
+
+<div id="viewModal" class="modal hidden"><div class="modalbox">
+<button class="close" id="closeView">×</button><small>DETAIL KEGIATAN</small><h2 id="viewTitle"></h2><div id="viewMeta" class="meta"></div><p id="viewDesc"></p><div id="viewLinks" class="links"></div>
+</div></div>
+<script src="script.js"></script>
+<script src="online.js"></script>
+</body></html>
